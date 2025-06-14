@@ -196,10 +196,15 @@ class SubprocessCLITransport(Transport):
                             raise SDKJSONDecodeError(line_str, e) from e
                         continue
 
-            except anyio.ClosedResourceError:
+            except (anyio.ClosedResourceError, GeneratorExit):
                 pass
             finally:
-                tg.cancel_scope.cancel()
+                # Cancel the task group gracefully
+                try:
+                    tg.cancel_scope.cancel()
+                except RuntimeError:
+                    # Ignore errors if cancel scope is already exited
+                    pass
 
         await self._process.wait()
         if self._process.returncode is not None and self._process.returncode != 0:
