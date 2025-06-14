@@ -199,11 +199,9 @@ class SubprocessCLITransport(Transport):
             except (anyio.ClosedResourceError, GeneratorExit):
                 pass
             finally:
-                # Cancel the task group gracefully
                 try:
                     tg.cancel_scope.cancel()
                 except RuntimeError:
-                    # Ignore errors if cancel scope is already exited
                     pass
 
         await self._process.wait()
